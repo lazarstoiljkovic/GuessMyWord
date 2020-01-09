@@ -1,0 +1,20 @@
+{
+  "name": "guessmyword",
+  "version": "1.0.0",
+  "description": "App Guewss my word",
+  "main": "app.js",
+  "scripts": {
+    "start": "node server"
+  },
+  "author": "Lazar Stoiljkovic and Nikola Gocic",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "express-handlebars": "^3.1.0",
+    "method-override": "^3.0.0",
+    "redis": "^2.8.0",
+    "socket.io": "^2.3.0",
+    "socket.io-client": "^2.3.0"
+  }
+}

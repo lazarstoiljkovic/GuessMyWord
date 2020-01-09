@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Pocetna-strana</title>
+        <script src="/socket.io/socket.io.js"></script>
+        <style>
+            body{
+                background-color:cornflowerblue;
+                display: block;
+            }
+            .container{
+                display: flex;
+                flex-direction: column;
+                
+            }
+
+            .gornji{
+                display: flex;
+                flex-direction: row;
+                margin-top: 30px;
+
+            }
+
+            .podaci{
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                flex-grow: 1;
+            }
+
+            #leaderboard{
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                
+                flex-grow: 1;
+
+            }
+
+            #igra{
+                display: flex;
+                flex-direction: row;
+                flex-grow: 5;
+                margin-top: 30px;
+                border: 1px solid black;
+            }
+
+            .unos{
+                display: flex;
+                flex-direction: row;
+                justify-content: center;
+                align-items: center;
+                margin-top: 30px;
+            }
+
+            .pocetakIgre{
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                margin-top: 30px;
+            }
+
+            .divIgrac{
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                flex-grow: 1;
+            }
+
+            .divAsocijacije{
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                margin-top: 15px;
+                margin-bottom: 15px;
+            }
+
+            .dodavanjeAsocijacije{
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: center;
+                margin-top: 30px;
+            }
+
+            .labelaBroj{
+                display: flex;
+                flex-direction: row;
+                justify-content: center;
+                align-items: center;
+            }
+
+        </style>
+
+    </head>
+    <body>
+        <div class="container">
+            <div class="gornji">
+                <div class="podaci">
+                    <div id="dugme">
+                        <button id="ready">Spreman</button>
+                    </div>
+                    
+                    <div id="idRoom">
+                        <label>Room ID: </label>
+                        <label id="labelaIdRoom"></label>
+    
+                    </div>
+                    <div id="idUser">
+                        <label>User ID: </label>
+                        <label id="labelaIdUser"></label>
+    
+                    </div>
+                    <div id="Username">
+                        <label>Username: </label>
+                        <label id="labelaUsername"></label>
+    
+                    </div>
+                </div>
+
+                <div id="leaderboard">
+                    <label>Leaderboard</label>
+
+                </div>
+
+            </div>
+            <div class="unos">
+                <label>Unesite rec:</label>
+                <input type="text" id="rec">
+                <button id="btnRec" disabled="true">Posalji Rec</button>
+            </div>
+
+            <div class="dodavanjeAsocijacije">
+                <label>Dodaj asocijaciju:</label>
+                <input type="text" id="asocijacija">
+                <button id="btnDodajAsocijaciju" disabled="true">Dodaj asocijaciju</button>
+
+            </div>
+
+            <div class="pocetakIgre">
+                <label id="zapocniIgru"></label>
+                <button id="playGame" disabled="true">Zapocni igru</button>
+            </div>
+            
+           
+            <div id="igra">
+                
+
+            </div>
+
+            <div class="proslediRezultat">
+                <button id="btnProslediRezultat" disabled="true">Prosledi rezultat</button>
+            </div>
+        </div>
+
+        <script>
+            var socket = io.connect('http://localhost:3000');
+            const divIdRoom=document.getElementById("idRoom");
+            const divIdUser=document.getElementById("idUser");
+            const divIdUsername=document.getElementById("Username");
+            const btnSpreman=document.getElementById("ready");
+            const btnRec=document.getElementById("btnRec");
+            const labelaIdRoom=document.getElementById("labelaIdRoom");
+            const labelaIdUser=document.getElementById("labelaIdUser");
+            const labelaUsername=document.getElementById("labelaUsername");
+            const labelaZapocniIgru=document.getElementById("zapocniIgru");
+            const btnPlayGame=document.getElementById("playGame");
+            const inpRec=document.getElementById("rec");
+            const divIgra=document.getElementById("igra");
+            const btnDodajAsocijaciju=document.getElementById("btnDodajAsocijaciju");
+            const inpAsocijacija=document.getElementById("asocijacija");
+            const btnProslediRezultat=document.getElementById("btnProslediRezultat");
+            const divLeaderboard=document.getElementById("leaderboard");
+            var idRoom=0;
+            
+
+            socket.on('idRoom',function(msg){
+                console.log(msg);
+                labelaIdRoom.value=msg;
+                labelaIdRoom.innerHTML=msg;
+                idRoom=labelaIdRoom.value;
+
+                console.log(idRoom);
+
+                socket.on("channel" + idRoom ,function(msg){
+                    if(msg === "mozete poceti igru")   //poruka za pocetak igre
+                    {
+                        labelaZapocniIgru.innerHTML=msg;
+                        btnPlayGame.disabled=false;
+                        console.log(msg);
+
+                    }
+                    else if(msg === "otkljucajDugmice")
+                    {
+
+                        btnProslediRezultat.disabled=false;
+                    }
+                    else if((JSON.parse(msg))["flag"] === 3)   //poruka za slanje postignutog rezultata
+                    {
+                        console.log("prvo");
+                        console.log(msg);
+                        const user=JSON.parse(msg);
+
+                        let labela=document.createElement("label");
+                        labela.innerHTML="Player: "+user["username"]+" "+user["points"]+" points";
+                        divLeaderboard.appendChild(labela);
+
+
+                    }
+                    else if((JSON.parse(msg))["flag"] === 2)  //poruka za slanje asocijcije
+                    {
+                        console.log("drugo");
+                        console.log(msg);
+                        const jsonMsg=JSON.parse(msg);
+                        
+                        if(jsonMsg["id"] === labelaIdUser.value)
+                        {
+                            console.log("nista");
+                        }
+                        else
+                        {
+                                    
+                            const pom=document.querySelectorAll(".divAsocijacije");
+                            console.log(pom);
+                            pom.forEach(divAsoc =>{
+                                if(divAsoc.value === jsonMsg["id"])
+                                {
+                                    let labela=document.createElement("label");
+                                    labela.innerHTML=jsonMsg["association"];
+                                    divAsoc.appendChild(labela);
+                                }
+                            })
+
+                        }
+                    }
+                    else if((JSON.parse(msg))["flag"] === 1)
+                    {
+                        console.log("trece");
+                        console.log(msg);
+                        const user=JSON.parse(msg);
+                        if(labelaIdUser.value === user["id"])
+                        {
+                            console.log("ne uzimam svoju rec da pogadjam");
+                        }
+                        else
+                        {
+                            let divIgrac=document.createElement("div");
+                            divIgrac.className="divIgrac";
+                            divIgra.appendChild(divIgrac);
+
+                            let labelaID=document.createElement("label");
+                            labelaID.innerHTML="UserID: "+user["id"];
+                            labelaID.className="protivnikId";
+                            labelaID.value=user["id"];
+                            divIgrac.appendChild(labelaID);
+
+                        
+                            let labelaUsername=document.createElement("label");
+                            labelaUsername.innerHTML="Username: "+user["username"];
+                            labelaUsername.className="protivnikUsername";
+                            labelaUsername.value=user["username"];
+                            divIgrac.appendChild(labelaUsername);
+
+                            let divAsocijacije=document.createElement("div");
+                            divAsocijacije.className="divAsocijacije";
+                            divAsocijacije.value=user["id"];
+                            divIgrac.appendChild(divAsocijacije);
+
+                            let divBrojZadatihAsocijacija=document.createElement("div");
+                            divBrojZadatihAsocijacija.className="divBrojZadatihAsocijacija";
+                            divAsocijacije.appendChild(divBrojZadatihAsocijacija);
+
+                            let labelaBrojZadatihAsocijacija=document.createElement("label");
+                            labelaBrojZadatihAsocijacija.innerHTML="Broj zadatih asocijacija: ";
+                            divBrojZadatihAsocijacija.appendChild(labelaBrojZadatihAsocijacija);
+
+                            let labelaBroj=document.createElement("label");
+                            labelaBroj.value=0;
+                            labelaBroj.innerHTML="0";
+                            labelaBroj.id="labelaBroj"+labelaIdUser.value;
+                            divBrojZadatihAsocijacija.appendChild(labelaBroj);
+
+                            let labelaAsocijacije=document.createElement("label");
+                            labelaAsocijacije.innerHTML="Asocijacije:"
+                            divAsocijacije.appendChild(labelaAsocijacije);
+
+                            let inpPogodiRec=document.createElement("input");
+                            inpPogodiRec.type="text";
+                            inpPogodiRec.className="pogodiRec";
+                            divIgrac.appendChild(inpPogodiRec);
+
+                            let btnPogodiRec=document.createElement("button");
+                            btnPogodiRec.innerHTML="PogodiRec";
+                            btnPogodiRec.value=user["id"];
+                            divIgrac.appendChild(btnPogodiRec);
+
+                            let btnPredaja=document.createElement("button");
+                            btnPredaja.innerHTML="Predajem se";
+                            divIgrac.appendChild(btnPredaja);
+
+                            btnPredaja.onclick=function(){
+                                socket.emit('predaja',"predajem se!!");
+                            }
+
+                            btnPogodiRec.onclick=function(event){
+                                console.log("pogodi rec");
+                                const jsonMsg={};
+                                console.log(event.target.value);
+                                jsonMsg["myId"]=labelaIdUser.value;
+                                jsonMsg["opponentId"]=Number(event.target.value);
+                                jsonMsg["guessedWord"]=inpPogodiRec.value;
+                                socket.emit('pogadjamRec',jsonMsg);
+                            }
+                        }
+
+                    }
+                    else
+                    {
+                        console.log("pogresna poruka");
+                        console.log(msg);
+
+                    }
+
+                });
+
+            });
+                
+
+           
+
+            socket.on('idUser',function(msg){
+                console.log(msg);
+                labelaIdUser.value=msg;
+                labelaIdUser.innerHTML=msg;
+               
+
+            });
+
+            socket.on('username',function(msg){
+                console.log(msg);
+                labelaUsername.value=msg;
+                labelaUsername.innerHTML=msg;
+               
+            });
+
+            socket.on('points',function(msg){
+                console.log(msg);
+            })
+
+            socket.on('cekanje',function(msg){
+                labelaZapocniIgru.innerHTML=msg;
+                console.log(msg);
+            })
+
+
+
+            socket.on('podaci',function(msg){
+                console.log(msg);
+            })
+
+            socket.on('callbackPogadjamRec',function(msg){
+                console.log(msg);
+                alert(msg);
+                
+            })
+
+            socket.on('kraj',function(msg){
+                alert(msg);
+                const jsonMsg={};
+                jsonMsg["idRoom"]=labelaIdRoom.value;
+                jsonMsg["message"]="otkljucajDugmice";
+                //btnProslediRezultat.disabled=false;
+                socket.emit('otkljucajDugmice',jsonMsg);
+            })
+
+            btnSpreman.onclick=function(){
+                socket.emit('ready',"Zapocinjem igru");
+                btnSpreman.disabled=true;
+                btnRec.disabled=false;
+            }
+
+            btnRec.onclick=function(){
+                var jsonData={};
+                console.log(labelaIdUser.value);
+                jsonData["id"]=labelaIdUser.value;
+                jsonData["word"]=inpRec.value;
+                console.log(jsonData);
+                socket.emit('word',jsonData);
+
+            }
+
+            btnPlayGame.onclick=function(){
+                var jsonObj={};
+                jsonObj["id"]=labelaIdUser.value;
+                jsonObj["username"]=labelaUsername.value;
+                jsonObj["idRoom"]=labelaIdRoom.value;
+                socket.emit('playGame',jsonObj);
+                btnPlayGame.disabled=true;
+                btnDodajAsocijaciju.disabled=false;
+
+            }
+
+            btnDodajAsocijaciju.onclick=function(){
+                var msg={};
+                msg["id"]=labelaIdUser.value;
+                msg["association"]=inpAsocijacija.value;
+                msg["idRoom"]=labelaIdRoom.value;
+                console.log(msg);
+                socket.emit('asocijacija',msg);
+
+            }
+
+            btnProslediRezultat.onclick=function(){
+                var user={};
+                user["idUser"]=labelaIdUser.value;
+                user["idRoom"]=labelaIdRoom.value;
+
+                socket.emit('prosleditiRezultat',user);
+
+            }
+
+
+        </script>
+
+
+    </body>
+</html>

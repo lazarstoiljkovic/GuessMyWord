@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Login-Strana</title>
+        <script src="/socket.io/socket.io.js"></script>
+        <style>
+            body{
+                background-color:cornflowerblue;
+
+            }
+            .forma{
+                display: flex;
+                flex-direction: column;
+            }
+            .container{
+                margin-top: 200px;
+                display: flex;
+                flex-grow: 1;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            }
+            .labelaUsername,.inpUsername,.login{
+                margin-top: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <form action="http://localhost:3000/login" method="POST">
+                <div class="forma">
+                    <label class="labelaUsername">Username</label>
+                    <input type="text" name="username" class="inpUsername">
+                </div>
+                <button type="submit" class="login">Login</button>
+            </form>
+        </div>
+        <script>
+            var socket = io.connect('http://localhost:3000');
+
+            socket.on('dobrodoslica',function(msg){
+                console.log(msg);
+            })
+
+            
+        </script>
+
+
+    </body>
+
+</html>
